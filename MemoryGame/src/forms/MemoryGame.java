@@ -8,28 +8,30 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MemoryGame extends JFrame {
+public class MemoryGame{
 
     public JPanel panelMain;
     private JPanel panelInfo;
     private JPanel panelGame;
     private JLabel labelTime;
-    private JLabel labelPoints;
+    private JLabel labelPairs;
     private JLabel labelErrors;
+    private JLabel labelPoints;
     private JLabel labelUser;
+
 
     private static final int CARDS_ROW_COLUMN = 4;
     private static final int TOTAL_PAIRS = 8;
     private static final String[] CARD_VALUES = {"A", "B", "C", "D", "E", "F", "G", "H"};
 
-    private int points = 0;
+    private int foundPairs = 0;
+    private int pointsCounter= 0;
     private int errorPoints = 0;
     private int seconds = 0;
     private String userName;
 
     private int firstCardIndex = -1;
     private int secondCardIndex = -1;
-    private int pairsFound = 0;
     private boolean isProcessing = false;
 
     //array de 16 jbuttons (cartes)
@@ -44,38 +46,50 @@ public class MemoryGame extends JFrame {
 
     //constructor de JPanel
     public MemoryGame() {
-        panelMain.setLayout(null);
-        panelInfo.setLayout(new GridLayout());
-        panelGame.setLayout(new GridLayout(CARDS_ROW_COLUMN, CARDS_ROW_COLUMN));
+
+        panelMain = new JPanel(new BorderLayout());
+        panelInfo = new JPanel(new GridLayout(1, 4)); //1 fila 4 columnes
+        panelGame = new JPanel(new GridLayout(CARDS_ROW_COLUMN, CARDS_ROW_COLUMN, 5, 5)); //gap entre cartes de 5
+
+        //inicialitzar labekls
+        labelPairs = new JLabel("Parelles trobades: " + foundPairs + "/8", SwingConstants.CENTER);
+        labelPoints = new JLabel("Punts: " + pointsCounter, SwingConstants.CENTER);
+        labelErrors = new JLabel("Errors: " + errorPoints, SwingConstants.CENTER);
+        labelTime = new JLabel("Temps: " + seconds + "s", SwingConstants.CENTER);
+        labelUser = new JLabel("Juagdor: " + userName, SwingConstants.CENTER);
+
+        //afegir al panelInfo
+        panelInfo.add(labelPairs);
+        panelInfo.add(labelPoints);
+        panelInfo.add(labelErrors);
+        panelInfo.add(labelTime);
+        panelInfo.add(labelUser);
 
         JFrame frame = new JFrame("MemoryGame");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(700, panelInfo.getHeight()+ 700);
+        frame.setSize(700, 750);
         frame.setLayout(new BorderLayout());
         frame.setContentPane(panelMain);
+
+        //potser cal posar final constructor
         frame.setVisible(true);
 
         showPanelInfo();
         showPanelGame();
 
         createCardPairs();
-        setupCards();
+        createCardsDesign();
     }
-
 
 
     private void showPanelInfo() {
-
-        panelInfo.setSize(panelMain.getWidth(), 80);
-        panelMain.add(panelInfo);
-        labelPoints.setText("Parelles trobades: " + points + "/8");
-        labelErrors.setText("Errors comesos: " + errorPoints);
-
+        //afegeix espais dalt i baix
+        panelInfo.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        panelMain.add(panelInfo, BorderLayout.NORTH);
     }
 
     private void showPanelGame() {
-        panelGame.setSize(panelMain.getWidth(), panelMain.getHeight() - panelGame.getHeight());
-        panelMain.add(panelGame);
+        panelMain.add(panelGame, BorderLayout.CENTER);
     }
 
     //crea parelles de cartes aleatòries
@@ -91,16 +105,32 @@ public class MemoryGame extends JFrame {
         gameCards = cardList.toArray(new String[0]);
     }
 
-    private void setupCards() {
+    private void createCardsDesign() {
 
         for (int i = 0; i < cards.length; i++) {
             cards[i] = new JButton();
             cards[i].setFont(new Font("Arial", Font.BOLD, 50));
+            cards[i].setForeground(Color.BLACK);
             cards[i].setBackground(Color.LIGHT_GRAY);
             cards[i].setOpaque(true);
+            cards[i].setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
             cards[i].addActionListener(new CardClickListener(i));
             panelGame.add(cards[i]);
         }
+    }
+
+    private void updateInfoLabels() {
+        //actualitza dades panelInfo
+        labelPairs.setText("Parelles trobades: " + foundPairs + "/8");
+        labelPoints.setText("Punts: " + pointsCounter);
+        labelErrors.setText("Errors: " + errorPoints);
+    }
+
+    private void resetValues() {
+        //torna a valors inicials
+        firstCardIndex = -1;
+        secondCardIndex = -1;
+        isProcessing = false;
     }
 
     private class CardClickListener implements ActionListener {
@@ -112,34 +142,56 @@ public class MemoryGame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (!cards[cardIndex].getText().isEmpty() || isProcessing) return;
+
+            //no es pot girar una carta si ja esta girada o encara no hem acabat la ronda anterior
+            if (!cards[cardIndex].getText().isEmpty() || isProcessing)
+                { return; }
 
             cards[cardIndex].setText(gameCards[cardIndex]);
             cards[cardIndex].setBackground(Color.WHITE);
 
 
-            if (firstCardIndex == -1) {
-                firstCardIndex = cardIndex;
+            if (firstCardIndex == -1) { //només es compleix quan cap carta esta girada
+                firstCardIndex = cardIndex; //guarda el i de la carta
             } else {
-                secondCardIndex = cardIndex;
-                isProcessing = true;
+                secondCardIndex = cardIndex; //guarda el i de la segona carta
+                isProcessing = true; //evita que es pugui girar una tercer carta
 
                 if (gameCards[firstCardIndex].equals(gameCards[secondCardIndex])) {
-                    pairsFound++;
+                    foundPairs++;
+                    pointsCounter++;
                     cards[firstCardIndex].setEnabled(false);
                     cards[secondCardIndex].setEnabled(false);
                     cards[firstCardIndex].setBackground(Color.GREEN);
                     cards[secondCardIndex].setBackground(Color.GREEN);
-                    points ++;
+                    updateInfoLabels();
 
-                    if (pairsFound == TOTAL_PAIRS) {
+
+                    if (foundPairs == TOTAL_PAIRS) {
                         JOptionPane.showMessageDialog(panelMain,
-                                "Congratulations! You won!",
+                                "Felicitats! Has guanyat amb: " + pointsCounter + " punts!!",
                                 "Game Over",
                                 JOptionPane.INFORMATION_MESSAGE);
                     }
 
+                    resetValues();
 
+                }else {
+                    errorPoints++;
+                    updateInfoLabels();
+
+                    Timer timer = new Timer(1000, event-> {
+                        cards[firstCardIndex].setText("");
+                        cards[secondCardIndex].setText("");
+                        cards[firstCardIndex].setBackground(Color.LIGHT_GRAY);
+                        cards[secondCardIndex].setBackground(Color.LIGHT_GRAY);
+
+
+                        resetValues();
+                    });
+
+                    timer.setRepeats(false);
+                    timer.start();
                 }
             }
         }
