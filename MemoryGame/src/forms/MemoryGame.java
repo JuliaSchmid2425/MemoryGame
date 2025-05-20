@@ -25,7 +25,12 @@ public class MemoryGame extends JFrame {
     private int points = 0;
     private int errorPoints = 0;
     private int seconds = 0;
-    private String nomUsuari;
+    private String userName;
+
+    private int firstCardIndex = -1;
+    private int secondCardIndex = -1;
+    private int pairsFound = 0;
+    private boolean isProcessing = false;
 
     //array de 16 jbuttons (cartes)
     private JButton[] cards = new JButton[CARDS_ROW_COLUMN * CARDS_ROW_COLUMN];
@@ -33,15 +38,8 @@ public class MemoryGame extends JFrame {
     //array de 16 cartes amb disseny (8 parelles)
     private String[] gameCards = new String[CARDS_ROW_COLUMN * CARDS_ROW_COLUMN];
 
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("MemoryGame");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(700, 700);
-        frame.setLayout(new BorderLayout());
+    public static void main(String[] args){
         MemoryGame game = new MemoryGame(); // crea nou joc
-        frame.setContentPane(game.panelMain);
-        frame.setVisible(true);
     }
 
     //constructor de JPanel
@@ -50,15 +48,24 @@ public class MemoryGame extends JFrame {
         panelInfo.setLayout(new GridLayout());
         panelGame.setLayout(new GridLayout(CARDS_ROW_COLUMN, CARDS_ROW_COLUMN));
 
+        JFrame frame = new JFrame("MemoryGame");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(700, panelInfo.getHeight()+ 700);
+        frame.setLayout(new BorderLayout());
+        frame.setContentPane(panelMain);
+        frame.setVisible(true);
+
         showPanelInfo();
         showPanelGame();
+
         createCardPairs();
         setupCards();
     }
 
 
 
-    private void showPanelInfo(){
+    private void showPanelInfo() {
+
         panelInfo.setSize(panelMain.getWidth(), 80);
         panelMain.add(panelInfo);
         labelPoints.setText("Parelles trobades: " + points + "/8");
@@ -66,8 +73,8 @@ public class MemoryGame extends JFrame {
 
     }
 
-    private void showPanelGame(){
-        panelGame.setSize(panelMain.getWidth(), panelMain.getHeight()-panelGame.getHeight());
+    private void showPanelGame() {
+        panelGame.setSize(panelMain.getWidth(), panelMain.getHeight() - panelGame.getHeight());
         panelMain.add(panelGame);
     }
 
@@ -91,8 +98,50 @@ public class MemoryGame extends JFrame {
             cards[i].setFont(new Font("Arial", Font.BOLD, 50));
             cards[i].setBackground(Color.LIGHT_GRAY);
             cards[i].setOpaque(true);
-            //   cards[i].addActionListener(new CardClickListener(i));
+            cards[i].addActionListener(new CardClickListener(i));
             panelGame.add(cards[i]);
+        }
+    }
+
+    private class CardClickListener implements ActionListener {
+        private final int cardIndex;
+
+        public CardClickListener(int index) {
+            this.cardIndex = index;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!cards[cardIndex].getText().isEmpty() || isProcessing) return;
+
+            cards[cardIndex].setText(gameCards[cardIndex]);
+            cards[cardIndex].setBackground(Color.WHITE);
+
+
+            if (firstCardIndex == -1) {
+                firstCardIndex = cardIndex;
+            } else {
+                secondCardIndex = cardIndex;
+                isProcessing = true;
+
+                if (gameCards[firstCardIndex].equals(gameCards[secondCardIndex])) {
+                    pairsFound++;
+                    cards[firstCardIndex].setEnabled(false);
+                    cards[secondCardIndex].setEnabled(false);
+                    cards[firstCardIndex].setBackground(Color.GREEN);
+                    cards[secondCardIndex].setBackground(Color.GREEN);
+                    points ++;
+
+                    if (pairsFound == TOTAL_PAIRS) {
+                        JOptionPane.showMessageDialog(panelMain,
+                                "Congratulations! You won!",
+                                "Game Over",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+
+
+                }
+            }
         }
     }
 }
