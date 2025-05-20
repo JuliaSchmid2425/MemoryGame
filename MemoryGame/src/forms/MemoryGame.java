@@ -18,6 +18,7 @@ public class MemoryGame{
     private JLabel labelErrors;
     private JLabel labelPoints;
     private JLabel labelUser;
+    private Timer gameTimer;
 
 
     private static final int CARDS_ROW_COLUMN = 4;
@@ -79,6 +80,19 @@ public class MemoryGame{
 
         createCardPairs();
         createCardsDesign();
+        startGameTimer();
+    }
+
+    //compta l'estona que dura el joc
+    private void startGameTimer() {
+        gameTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                seconds++;
+                labelTime.setText("Temps: " + seconds + "s");
+            }
+        });
+        gameTimer.start();
     }
 
 
@@ -169,7 +183,8 @@ public class MemoryGame{
 
                     if (foundPairs == TOTAL_PAIRS) {
                         JOptionPane.showMessageDialog(panelMain,
-                                "Felicitats! Has guanyat amb: " + pointsCounter + " punts!!",
+                                "Felicitats! Has guanyat amb: " + pointsCounter + " punts!! \n" +
+                                        "Durada del joc: " + gameTimer + "s",
                                 "Game Over",
                                 JOptionPane.INFORMATION_MESSAGE);
                     }
