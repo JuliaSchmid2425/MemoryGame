@@ -113,7 +113,7 @@ public class FrontPage {
     private void setupFrame() {
         frame = new JFrame("Pàgina inicial");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(750, 400);
+        frame.setSize(750, 500);
         frame.setMaximumSize(new Dimension(frame.getWidth(), frame.getHeight()));
 
         frame.setLayout(new BorderLayout());

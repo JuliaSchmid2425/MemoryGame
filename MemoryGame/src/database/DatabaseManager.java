@@ -5,9 +5,9 @@ import java.sql.*;
 public class DatabaseManager {
 
 
-    private static String dataBaseURL = "jdbc:mysql://localhost:3306/gamememory"; //posar nom bdd
-    private static String user = "julia"; //canviar user
-    private static String password = "julia"; //canviar psw
+    protected static String dataBaseURL = "jdbc:mysql://localhost:3306/gamememory"; //posar nom bdd
+    protected static String user = "julia"; //canviar user
+    protected static String password = "julia"; //canviar psw
 
     //primer cal crear taula
     //indicar taula. cada 'interrogacio' es una columna definida a ps.set
@@ -37,16 +37,6 @@ public class DatabaseManager {
                 }
             }
 
-
-           /* PreparedStatement psJugadors = con.prepareStatement(insertTableJugadors);
-            psJugadors.setString(1, username); //username
-            int addRowsJugadors = psJugadors.executeUpdate();
-
-            if (addRowsJugadors > 0) {
-                System.out.println("S'han insertat les dades correctament");
-            }else  System.out.println("problema jugadors");
-            psJugadors.close();*/
-
             try {
                 PreparedStatement psPartides = con.prepareStatement(insertTablePartides);
 
@@ -61,6 +51,7 @@ public class DatabaseManager {
                 //comprovar que les dades s'han guardat correctament si el valor de addRows>0
                 if (addRowsPartides > 0) {
                     System.out.println("S'han insertat les dades correctament");
+                    showRank();
                 } else {System.out.println("Hi ha hagut un problema inserint els registres a la taula partides."); }
                 psPartides.close(); //potser com qeu s'obre i tanca puc posar els dos com a ps enlloc de psPartides
                 con.close();
@@ -73,6 +64,10 @@ public class DatabaseManager {
         } catch (SQLException e) {
             System.out.println("La connexió amb la base de dades ha fallat");
         }
+    }
+    public static void showRank() {
+        // Call the DatabaseRank to show the top players window
+        DatabaseRank.showTopPlayers();
     }
 }
 

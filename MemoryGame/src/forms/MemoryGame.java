@@ -86,6 +86,7 @@ public class MemoryGame{
         frame.setSize(700, 750);
         frame.setLayout(new BorderLayout());
         frame.setContentPane(panelMain);
+        frame.setBackground(Color.white);
 
 
         frame.setVisible(true);
@@ -168,7 +169,7 @@ public class MemoryGame{
             cards[i].setForeground(Color.BLACK);
             cards[i].setBackground(Color.LIGHT_GRAY);
             cards[i].setOpaque(true);
-            cards[i].setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+            cards[i].setBorder(BorderFactory.createLineBorder(Color.gray, 2));
             cards[i].addActionListener(new CardClickListener(i));
             panelGame.add(cards[i]);
         }
