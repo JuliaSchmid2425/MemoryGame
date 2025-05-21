@@ -40,20 +40,20 @@
               <text value="errors"/>
             </properties>
           </component>
-          <component id="40f79" class="javax.swing.JLabel" binding="labelUser">
-            <constraints>
-              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="usuari"/>
-            </properties>
-          </component>
           <component id="e4990" class="javax.swing.JLabel" binding="labelPoints">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="punts"/>
+            </properties>
+          </component>
+          <component id="bfce5" class="javax.swing.JLabel" binding="labelUser">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="usuari"/>
             </properties>
           </component>
         </children>

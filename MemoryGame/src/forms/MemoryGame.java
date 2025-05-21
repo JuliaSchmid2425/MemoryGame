@@ -1,5 +1,7 @@
 package forms;
 
+import database.DatabaseManager;
+
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
@@ -10,7 +12,8 @@ import java.util.List;
 
 public class MemoryGame{
 
-    public JPanel panelMain;
+    private JFrame frame;
+    private JPanel panelMain;
     private JPanel panelInfo;
     private JPanel panelGame;
     private JLabel labelTime;
@@ -21,13 +24,13 @@ public class MemoryGame{
 
     private static final int CARDS_ROW_COLUMN = 4;
     private static final int TOTAL_PAIRS = 8;
-    private static final String[] CARD_VALUES = {"A", "B", "C", "D", "E", "F", "G", "H"};
+    private static final String[] CARD_VALUES = {":)", ":p", "<3", ":D", ":v", "uwu", "o.0", ":3"};
+
 
     private int foundPairs = 0;
     private int pointsCounter= 0;
     private int errorPoints = 0;
     private int seconds = 0;
-    private String userName;
     private Timer gameTimer;
 
     private int firstCardIndex = -1;
@@ -51,15 +54,20 @@ public class MemoryGame{
     //array de 16 cartes amb disseny (8 parelles)
     private String[] gameCards = new String[CARDS_ROW_COLUMN * CARDS_ROW_COLUMN];
 
-    public static void main(String[] args){
-        MemoryGame game = new MemoryGame(); // crea nou joc
-    }
+    //guardar les dades per insertar-les a la bd
+    private final String username;
+    private int pointsDB;
+    private int errorsDB;
+    private int durationSecondsDB;
 
     //constructor de JPanel
-    public MemoryGame() {
+    public MemoryGame(String username) {
+
+        this.username = username; //guarda username de frontpage
+
 
         panelMain = new JPanel(new BorderLayout());
-        panelInfo = new JPanel(new GridLayout(1, 4)); //1 fila 4 columnes
+        panelInfo = new JPanel(new GridLayout(1, 5)); //1 fila 4 columnes
         panelGame = new JPanel(new GridLayout(CARDS_ROW_COLUMN, CARDS_ROW_COLUMN, 5, 5)); //gap entre cartes de 5
 
         //inicialitzar labekls
@@ -67,22 +75,19 @@ public class MemoryGame{
         labelPoints = new JLabel("Punts: " + pointsCounter, SwingConstants.CENTER);
         labelErrors = new JLabel("Errors: " + errorPoints, SwingConstants.CENTER);
         labelTime = new JLabel("Temps: " + seconds + "s", SwingConstants.CENTER);
-        labelUser = new JLabel("Juagdor: " + userName, SwingConstants.CENTER);
+        labelUser = new JLabel("Usuari: " + username, SwingConstants.CENTER);
+
 
         //afegir al panelInfo
-        panelInfo.add(labelPairs);
-        panelInfo.add(labelPoints);
-        panelInfo.add(labelErrors);
-        panelInfo.add(labelTime);
-        panelInfo.add(labelUser);
 
-        JFrame frame = new JFrame("MemoryGame");
+
+        frame = new JFrame("MemoryGame");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(700, 750);
         frame.setLayout(new BorderLayout());
         frame.setContentPane(panelMain);
 
-        //potser cal posar final constructor
+
         frame.setVisible(true);
 
         showPanelInfo();
@@ -109,13 +114,18 @@ public class MemoryGame{
     private void showPanelInfo() {
         //afegeix espais dalt i baix
         panelInfo.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        panelInfo.add(labelPairs);
+        panelInfo.add(labelPoints);
+        panelInfo.add(labelErrors);
+        panelInfo.add(labelTime);
+        panelInfo.add(labelUser);
+
         panelMain.add(panelInfo, BorderLayout.NORTH);
     }
 
     private void showPanelGame() {
         panelMain.add(panelGame, BorderLayout.CENTER);
     }
-
 
     private void initializePairs() {
         // Create a map to group card positions by their values (A, B, C, etc.)
@@ -181,6 +191,7 @@ public class MemoryGame{
     private class CardClickListener implements ActionListener {
         private final int cardIndex;
 
+
         public CardClickListener(int index) {
             this.cardIndex = index;
         }
@@ -190,7 +201,6 @@ public class MemoryGame{
 
             //no es pot girar una carta si ja esta girada o encara no hem acabat la ronda anterior
             if (!cards[cardIndex].isEnabled() || isProcessing) return;
-
 
 
             //guarda la carta com a ja revelada
@@ -230,17 +240,23 @@ public class MemoryGame{
                     cards[secondCardIndex].setBackground(Color.GREEN);
 
                     if (foundPairs == TOTAL_PAIRS) {
-                        gameTimer.stop(); //parar cronometre joc
+                        gameTimer.stop();
+                        MemoryGame.this.pointsDB = pointsCounter;
+                        MemoryGame.this.errorsDB = errorPoints;
+                        MemoryGame.this.durationSecondsDB = seconds;
+
                         JOptionPane.showMessageDialog(panelMain,
                                 "Felicitats! Has guanyat amb: " + pointsCounter + " punts!! \n" +
                                         "Durada del joc: " + seconds + "s",
                                 "Game Over",
                                 JOptionPane.INFORMATION_MESSAGE);
+
+                        saveGameStats();
                     }
 
                     resetValues();
 
-                }else {
+                } else {
                     errorPoints++;
                     // tarda 1s en tornar a girar les cartes
                     Timer flipBackTimer = new Timer(1000, event -> {
@@ -255,8 +271,24 @@ public class MemoryGame{
                     flipBackTimer.start();
                 }
                 updateInfoLabels();
-                }
             }
         }
     }
+
+    private void saveGameStats() {
+        try {
+            DatabaseManager.saveGame(
+                    this.username,      // Use the stored username
+                    this.pointsDB,     // Use the stored points
+                    this.errorsDB,     // Use the stored errors
+                    this.durationSecondsDB  // Use the stored duration
+            );
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame,
+                    "No s'han pogut desar les estadístiques: " + e.getMessage(),
+                    "Error de base de dades",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
+}
 
