@@ -1,11 +1,11 @@
 package forms;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 public class MemoryGame{
@@ -18,8 +18,6 @@ public class MemoryGame{
     private JLabel labelErrors;
     private JLabel labelPoints;
     private JLabel labelUser;
-    private Timer gameTimer;
-
 
     private static final int CARDS_ROW_COLUMN = 4;
     private static final int TOTAL_PAIRS = 8;
@@ -30,10 +28,22 @@ public class MemoryGame{
     private int errorPoints = 0;
     private int seconds = 0;
     private String userName;
+    private Timer gameTimer;
 
     private int firstCardIndex = -1;
     private int secondCardIndex = -1;
     private boolean isProcessing = false;
+
+    // Key: index de la primera carta de la parella
+    // Value: index de la primera carta de la parella
+    private Map<Integer, Integer> cardPairs = new HashMap<>();
+
+    // Tracks which card positions have been revealed (matched or not)
+    private Set<Integer> revealedCards = new HashSet<>();
+
+    //guarda el num de vegades que s'ha girat cardIndex.
+    // key: index carta. value: num vegades s'ha girat
+    private Map<Integer, Integer> cardRevealCount = new HashMap<>();
 
     //array de 16 jbuttons (cartes)
     private JButton[] cards = new JButton[CARDS_ROW_COLUMN * CARDS_ROW_COLUMN];
@@ -106,6 +116,26 @@ public class MemoryGame{
         panelMain.add(panelGame, BorderLayout.CENTER);
     }
 
+
+    private void initializePairs() {
+        // Create a map to group card positions by their values (A, B, C, etc.)
+        Map<String, List<Integer>> valueToPositions = new HashMap<>();
+
+        for (int i = 0; i < gameCards.length; i++) {
+            String value = gameCards[i];
+            valueToPositions.computeIfAbsent(value, k -> new ArrayList<>()).add(i);
+        }
+
+        // Pair up positions for each value
+        for (List<Integer> positions : valueToPositions.values()) {
+            if (positions.size() == 2) {
+                int firstPos = positions.get(0);
+                int secondPos = positions.get(1);
+                cardPairs.put(firstPos, secondPos); // Store pair
+            }
+        }
+    }
+
     //crea parelles de cartes aleatòries
     private void createCardPairs() {
         String[] cardPairs = new String[TOTAL_PAIRS * 2];
@@ -117,6 +147,7 @@ public class MemoryGame{
         List<String> cardList = Arrays.asList(cardPairs);
         Collections.shuffle(cardList);
         gameCards = cardList.toArray(new String[0]);
+        initializePairs();
     }
 
     private void createCardsDesign() {
@@ -158,33 +189,51 @@ public class MemoryGame{
         public void actionPerformed(ActionEvent e) {
 
             //no es pot girar una carta si ja esta girada o encara no hem acabat la ronda anterior
-            if (!cards[cardIndex].getText().isEmpty() || isProcessing)
-                { return; }
+            if (!cards[cardIndex].isEnabled() || isProcessing) return;
 
+
+
+            //guarda la carta com a ja revelada
+            revealedCards.add(cardIndex);
+
+            //cada cop que es clica una carta es +1 al comptador (value del map)
+            //valor default és 0 perque encara no s'ha clicat
+            cardRevealCount.put(cardIndex, cardRevealCount.getOrDefault(cardIndex, 0) + 1);
+
+            //mostra la carta i canvia color fons
             cards[cardIndex].setText(gameCards[cardIndex]);
             cards[cardIndex].setBackground(Color.WHITE);
 
-
             if (firstCardIndex == -1) { //només es compleix quan cap carta esta girada
                 firstCardIndex = cardIndex; //guarda el i de la carta
+
             } else {
                 secondCardIndex = cardIndex; //guarda el i de la segona carta
                 isProcessing = true; //evita que es pugui girar una tercer carta
 
+                //comprova els dos index corresponguin a la mateixa lletra
                 if (gameCards[firstCardIndex].equals(gameCards[secondCardIndex])) {
+                    // comprova si es la 1a vegada, per les dues cartes, que s'han girat
+                    boolean firstTimePair = cardRevealCount.get(firstCardIndex) == 1 &&
+                            cardRevealCount.get(secondCardIndex) == 1;
+
+                    if (firstTimePair) {
+                        pointsCounter = pointsCounter + 5;
+                    } else {
+                        pointsCounter++;
+                    }
+
                     foundPairs++;
-                    pointsCounter++;
                     cards[firstCardIndex].setEnabled(false);
                     cards[secondCardIndex].setEnabled(false);
                     cards[firstCardIndex].setBackground(Color.GREEN);
                     cards[secondCardIndex].setBackground(Color.GREEN);
-                    updateInfoLabels();
-
 
                     if (foundPairs == TOTAL_PAIRS) {
+                        gameTimer.stop(); //parar cronometre joc
                         JOptionPane.showMessageDialog(panelMain,
                                 "Felicitats! Has guanyat amb: " + pointsCounter + " punts!! \n" +
-                                        "Durada del joc: " + gameTimer + "s",
+                                        "Durada del joc: " + seconds + "s",
                                 "Game Over",
                                 JOptionPane.INFORMATION_MESSAGE);
                     }
@@ -193,22 +242,21 @@ public class MemoryGame{
 
                 }else {
                     errorPoints++;
-                    updateInfoLabels();
-
-                    Timer timer = new Timer(1000, event-> {
+                    // tarda 1s en tornar a girar les cartes
+                    Timer flipBackTimer = new Timer(1000, event -> {
                         cards[firstCardIndex].setText("");
                         cards[secondCardIndex].setText("");
                         cards[firstCardIndex].setBackground(Color.LIGHT_GRAY);
                         cards[secondCardIndex].setBackground(Color.LIGHT_GRAY);
-
-
                         resetValues();
+                        isProcessing = false;
                     });
-
-                    timer.setRepeats(false);
-                    timer.start();
+                    flipBackTimer.setRepeats(false);
+                    flipBackTimer.start();
+                }
+                updateInfoLabels();
                 }
             }
         }
     }
-}
+
