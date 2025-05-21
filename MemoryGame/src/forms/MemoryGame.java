@@ -17,7 +17,7 @@ public class MemoryGame{
     private JLabel labelPairs;
     private JLabel labelErrors;
     private JLabel labelPoints;
-    private JLabel labelUser;
+
 
     private static final int CARDS_ROW_COLUMN = 4;
     private static final int TOTAL_PAIRS = 8;
@@ -27,7 +27,6 @@ public class MemoryGame{
     private int pointsCounter= 0;
     private int errorPoints = 0;
     private int seconds = 0;
-    private String userName;
     private Timer gameTimer;
 
     private int firstCardIndex = -1;
@@ -67,14 +66,10 @@ public class MemoryGame{
         labelPoints = new JLabel("Punts: " + pointsCounter, SwingConstants.CENTER);
         labelErrors = new JLabel("Errors: " + errorPoints, SwingConstants.CENTER);
         labelTime = new JLabel("Temps: " + seconds + "s", SwingConstants.CENTER);
-        labelUser = new JLabel("Juagdor: " + userName, SwingConstants.CENTER);
+
 
         //afegir al panelInfo
-        panelInfo.add(labelPairs);
-        panelInfo.add(labelPoints);
-        panelInfo.add(labelErrors);
-        panelInfo.add(labelTime);
-        panelInfo.add(labelUser);
+
 
         JFrame frame = new JFrame("MemoryGame");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -82,7 +77,7 @@ public class MemoryGame{
         frame.setLayout(new BorderLayout());
         frame.setContentPane(panelMain);
 
-        //potser cal posar final constructor
+
         frame.setVisible(true);
 
         showPanelInfo();
@@ -110,12 +105,16 @@ public class MemoryGame{
         //afegeix espais dalt i baix
         panelInfo.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         panelMain.add(panelInfo, BorderLayout.NORTH);
+        panelInfo.add(labelPairs);
+        panelInfo.add(labelPoints);
+        panelInfo.add(labelErrors);
+        panelInfo.add(labelTime);
+
     }
 
     private void showPanelGame() {
         panelMain.add(panelGame, BorderLayout.CENTER);
     }
-
 
     private void initializePairs() {
         // Create a map to group card positions by their values (A, B, C, etc.)
