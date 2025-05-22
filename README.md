@@ -1,6 +1,6 @@
 # MemoryGame
+ !!el joc acabat amb comentaris de java doc és MemoryGame.zip !!
 
-Descripció del joc
 joc de memòria clàssic en Java amb (Swing). Consisteix en trobar totes les parelles de cartes iguals en el menor temps possible i amb el mínim d'errors.
 
 
