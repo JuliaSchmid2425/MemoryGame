@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"database","l":"DatabaseManager"},{"p":"database","l":"DatabaseRank"},{"p":"forms","l":"FrontPage"},{"p":"Main","l":"Main"},{"p":"forms","l":"MemoryGame"}];updateSearchResults();
